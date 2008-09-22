@@ -1,0 +1,31 @@
+FileAttribute
+=============
+
+With FileAttribute you can easily add one or more files to your ActiveRecord
+models. FileAttribute handles images using the ImageMagick commandline tools
+'convert' and 'mogrify'.
+
+
+Example
+=======
+
+Give your 'models' table a string column 'attachment_path' and modifiy your
+class declaration like this
+
+    class Model < ActiveRecord::Base
+      include FileAttribute
+  
+      has_file :attachment
+  
+      ...
+  
+    end
+
+This provides your Model with the following methods:
+
+  @model.attachment= <UploadedIO>
+  @model.remove_attachment= 
+
+For a more detailed documentation please take a look at the rdoc
+
+Copyright (c) 2008 [Jan Varwig], released under the MIT license
