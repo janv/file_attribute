@@ -252,7 +252,7 @@ module FileAttribute
       o = options_for attr_name
       
       path = FilePath.new( :path    => "#{o[:path]}/#{Time.now.strftime('%Y/%m/%d/')}",
-                           :name    => Digest::MD5.hexdigest("#{attr_name}#{self.id}#{Time.now}"),
+                           :name    => Digest::MD5.hexdigest("#{attr_name}#{self.id || self.object_id}#{Time.now}"),
                            :extname => Pathname.new(file.original_filename).extname)
     
       path.create_public_from file
