@@ -28,4 +28,11 @@ This provides your Model with the following methods:
 
 For a more detailed documentation please take a look at the rdoc
 
+
+TODO
+====
+
+- Transactions
+- Specs
+
 Copyright (c) 2008 [Jan Varwig], released under the MIT license

@@ -69,6 +69,21 @@ module ICMagick
       @actions.push("-#{command.to_s.gsub('"','\"')} \"#{args.join(' ').gsub('"','\"')}\"")
     end
     
+    # Provide a raw commandline
+    #
+    # Example:
+    # 
+    #   i = ICMagick::Image.new "infile"
+    #   i.raw_command "-resize \"800x600\" -gravity SouthEast watermark.png -compose Multiply -composite"
+    #   i.save_as "outfile"
+    #
+    # generates
+    #
+    #   convert infile -resize "800x600" -gravity SouthEast watermark.png -compose Multiply -composite outfile
+    def raw_command(commandline)
+      @actions [" commandline "]
+    end
+    
     # Returns true if the Image object actually refers to an image file
     def is_image?
       Image.is_image? @filename
