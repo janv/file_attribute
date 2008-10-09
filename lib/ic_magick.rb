@@ -81,7 +81,7 @@ module ICMagick
     #
     #   convert infile -resize "800x600" -gravity SouthEast watermark.png -compose Multiply -composite outfile
     def raw_command(commandline)
-      @actions [" commandline "]
+      @actions = [" commandline "]
     end
     
     # Returns true if the Image object actually refers to an image file
