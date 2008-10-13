@@ -254,20 +254,32 @@ module FileAttribute
       path = FilePath.new( :path    => "#{o[:path]}/#{Time.now.strftime('%Y/%m/%d/')}",
                            :name    => Digest::MD5.hexdigest("#{attr_name}#{self.id || self.object_id}#{Time.now}"),
                            :extname => Pathname.new(file.original_filename).extname)
-    
-      path.create_public_from file
-      if o[:versions]
-        path.create_private_from file
-        o[:versions].each_pair do |version, transformations|
-          vi = ICMagick::Image.new path.private
-          transformations.each_pair { |cmd, params| vi.send(cmd, params) }
-          vi.save_as path.public(version)
+      
+      if o[:versions].is_a?(Hash)
+        if o[:public_original]
+          path.create_private_from file
+          original_path = path.private
+        else
+          path.create_public_from file 
+          original_path = path.public
         end
+        o[:versions].each_pair do |version, transformation|
+          if o[:image] == true && transformation.is_a?(Hash)
+            vi = ICMagick::Image.new original_path
+            transformation.each_pair { |cmd, params| vi.send(cmd, params) }
+            vi.save_as path.public(version)
+          elsif transformation.is_a? Proc
+            transformation[original_path, path.public(version)]
+          end
+        end # search version
+      else
+        path.create_public_from file
       end
+      
       # Delete old files and store new
       FilePath.new(self["#{attr_name}_path"]).delete_all unless self["#{attr_name}_path"].blank?
       self["#{attr_name}_path"] = path.unversioned
-    end
+    end #set_files loop
     @set_files = nil
   end
   
