@@ -1,15 +1,15 @@
 require 'digest/md5'
 
-# Extension für ActiveRecord um Records Dateien anhängen zu können
+# Extension for ActiveRecord to easily attach files to models
 #
-# In das betroffene Model includen und anschließend mit has_file
-# Dateianhänge konfigurieren.
+# Include FileAttribute in the model you want to extend and use has_file
+# to configure the attachments.
 #
-# == Konfiguration über FileAttribute::CONFIG
+# -- FileAttribute::CONFIG
 #
-# * <tt>:public_dir</tt>  - Verzeichnis für öffentlich zugreifbare Daten, typischerweise unterhalb des public Ordners
-# * <tt>:private_dir</tt> - Verzeichnis für Originalversionen der Images
-# * <tt>:url_prefix</tt>  - URL-Prefix der den gespeicherten Dateipfaden angehängt werden muss damit diese vom Browser gefunden werden
+# * <tt>:public_dir</tt>  - Directory for publicly accessible files, usually inside you rails "public" folder
+# * <tt>:private_dir</tt> - Directory for private original versions of files
+# * <tt>:url_prefix</tt>  - URL-prefix for stored filepaths to make them accessible via Browser
 #
 # --
 # TODO
@@ -34,9 +34,10 @@ module FileAttribute
   end
   
   class FilePath # :nodoc:
-    # Erzeuge FilePath Objekt aus Pfad.
-    # Alternativ kann auch ein Hash mit Schlüsseln :path, :name und :extname 
-    # verwendet werden.
+    # Create a FilePath object from a relative (!) path
+    # (relative to the public/private dirs)
+    # Alternately a Hash with keys <tt>:path</tt>, <tt>:name</tt>, <tt>:extname</tt>
+    # can be used.
     def initialize(path)
       path = "#{path[:path]}/#{path[:name]}#{path[:extname]}" if path.is_a? Hash
       path = Pathname.new(path).cleanpath
@@ -88,21 +89,21 @@ module FileAttribute
       make_private_dir
       File.open(private, 'wb') { |f| f.write(file.read); f.chmod(0664) }
     end
-
+    
     # Kopiert Datei von path in die public-location
     def create_public_from(file)
       file.rewind
       make_public_dir
       File.open(public, 'wb') { |f| f.write(file.read); f.chmod(0664) }
     end
-
+    
   private
-
+    
     # Lösche alle öffentlichen Versionen der Datei
     def delete_public
       FileUtils.rm Dir.glob("#{FileAttribute::CONFIG[:public_dir]}/#{@dirname}/#{@fileid}*")
     end
-  
+    
     # Lösche alle privaten Versionen der Datei
     def delete_private
       FileUtils.rm Dir.glob("#{FileAttribute::CONFIG[:private_dir]}/#{@dirname}/#{@fileid}*")
@@ -143,9 +144,34 @@ module FileAttribute
     #                                     das entfernen der Datei sollten 
     #                                     dabei immer auf false stehen
     # 
-    # Optionen für has_file:
+    # == Options for has_file:
     # 
-    # <tt>:max_size</tt>:: Maximale Dateigröße in bytes
+    # <tt>:max_size</tt>:: Maximum filesize in bytes
+    # <tt>:versions</tt>:: A Hash describing file versions in the form
+    #                      :version => transformation
+    #                      where transformation is a Proc with 2 parameters,
+    #                      the first being the input file name (the original)
+    #                      the second being the output file name (the transformed file).
+    #                      
+    #                      If :versions are defined, the original file will not
+    #                      be placed in the public directory
+    # <tt>:public_original</tt>:: true or false. Wether to put the original file
+    #                             in the public directory even if versions are defined.
+    #                             Defaults to false.
+    # 
+    # == Example
+    # 
+    # has_file :picture,
+    #   :max_size => 500.kilobytes,
+    #   :public_original => true,
+    #   :versions => {
+    #     :special => lambda { |infile_name, outfile_name| do_stuff(:with => infile_name, :save_to => outfile_name)  }
+    #   }
+    # 
+    # Creates a 'special' version by processing the file. The do_stuff function
+    # here is expected to read the infile manipulate it and write the outfile.
+    # The browser path for a version can be accessed using +model_instance.attr_name(:version)+,
+    # in this case +model_instance.picture(:special)+.
     def has_file(attr_name, options={})
       self.instance_eval do
         (@file_attribute_options ||= {})[attr_name] = options
