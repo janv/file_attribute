@@ -283,11 +283,11 @@ module FileAttribute
       
       if o[:versions].is_a?(Hash)
         if o[:public_original]
-          path.create_private_from file
-          original_path = path.private
-        else
           path.create_public_from file 
           original_path = path.public
+        else
+          path.create_private_from file
+          original_path = path.private
         end
         o[:versions].each_pair do |version, transformation|
           if o[:image] == true && transformation.is_a?(Hash)
