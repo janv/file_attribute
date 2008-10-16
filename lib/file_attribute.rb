@@ -97,8 +97,6 @@ module FileAttribute
       File.open(public, 'wb') { |f| f.write(file.read); f.chmod(0664) }
     end
     
-  private
-    
     # Lösche alle öffentlichen Versionen der Datei
     def delete_public
       FileUtils.rm Dir.glob("#{FileAttribute::CONFIG[:public_dir]}/#{@dirname}/#{@fileid}*")
@@ -286,6 +284,7 @@ module FileAttribute
           path.create_public_from file 
           original_path = path.public
         else
+          path.make_public_dir
           path.create_private_from file
           original_path = path.private
         end
